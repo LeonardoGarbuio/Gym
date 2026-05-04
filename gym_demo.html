@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRON FORGE GYM | Forge Your Body</title>
+    
+    <!-- Tipografia Brutalista & Industrial -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+
+    <!-- Ícones -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* =========================================
+           VARIÁVEIS - INDUSTRIAL FORGE THEME
+           ========================================= */
+        :root {
+            --bg-base: #050505;
+            --bg-metal: #121212;
+            --bg-metal-light: #1E1E1E;
+            --forge-red: #E51A00; 
+            --forge-orange: #FF4500;
+            --text-main: #FFFFFF;
+            --text-muted: #7A7A7A;
+            --border-heavy: #2A2A2A;
+            
+            --font-head: 'Anton', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-tech: 'JetBrains Mono', monospace;
+        }
+
+        /* =========================================
+           RESET & GLOBAL
+           ========================================= */
+        * { margin: 0; padding: 0; box-sizing: border-box; border-radius: 0 !important; }
+        
+        body, html {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        ::selection { background: var(--forge-red); color: #FFF; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--border-heavy); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--forge-red); }
+
+        /* GRÃO INDUSTRIAL (FILM GRAIN) */
+        .noise {
+            position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.04; mix-blend-mode: overlay;
+        }
+
+        /* CANVAS SPARKS */
+        #forge-sparks {
+            position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 5%; position: relative; z-index: 2; }
+        section { position: relative; z-index: 2; }
+
+        /* UTILITÁRIOS MECÂNICOS */
+        .chamfered {
+            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        }
+        .chamfered-rev {
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        }
+
+        .tech-label {
+            font-family: var(--font-tech); font-size: 0.75rem; color: var(--forge-red);
+            text-transform: uppercase; letter-spacing: 4px; display: block; margin-bottom: 1rem;
+        }
+
+        /* =========================================
+           BOTÕES
+           ========================================= */
+        .btn-forge {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            background: var(--bg-metal-light); color: var(--text-main);
+            font-family: var(--font-head); font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase;
+            padding: 1rem 3rem; text-decoration: none; position: relative; overflow: hidden; 
+            cursor: pointer; transition: 0.2s; border: 1px solid var(--border-heavy);
+        }
+
+        .btn-forge::before {
+            content: ''; position: absolute; inset: 0; background: var(--forge-red);
+            transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.8, 0, 0.2, 1);
+            z-index: 0;
+        }
+        .btn-forge:hover { border-color: var(--forge-red); box-shadow: 0 0 20px rgba(229, 26, 0, 0.4); }
+        .btn-forge:hover::before { transform: scaleX(1); }
+        .btn-forge span, .btn-forge i { position: relative; z-index: 1; }
+
+        .btn-secondary { background: transparent; border: 2px solid var(--border-heavy); }
+        .btn-secondary:hover::before { background: var(--bg-metal-light); }
+        .btn-secondary:hover { border-color: var(--text-main); box-shadow: none; }
+
+        /* =========================================
+           HEADER
+           ========================================= */
+        header {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            padding: 1.5rem 5%; display: flex; justify-content: space-between; align-items: center;
+            transition: 0.3s; border-bottom: 1px solid transparent;
+        }
+        header.scrolled { background: rgba(5,5,5,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border-heavy); padding: 1rem 5%; }
+        
+        .logo { display: flex; align-items: center; gap: 10px; font-family: var(--font-head); font-size: 2.2rem; color: #FFF; text-decoration: none; letter-spacing: 2px; line-height: 1; }
+        .logo-icon { width: 30px; height: 30px; background: var(--forge-red); display: flex; align-items: center; justify-content: center; clip-path: polygon(20% 0%, 100% 0, 100% 80%, 80% 100%, 0 100%, 0% 20%); }
+        .logo span { color: var(--text-muted); font-size: 1.5rem; }
+        
+        .nav-links { display: flex; gap: 3rem; }
+        .nav-links a { color: var(--text-main); text-decoration: none; font-family: var(--font-tech); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; transition: 0.2s; }
+        .nav-links a:hover { color: var(--forge-red); }
+
+        .floating-cta { position: fixed; bottom: 2rem; right: 2rem; z-index: 90; box-shadow: 0 10px 30px rgba(229, 26, 0, 0.4); }
+
+        /* =========================================
+           1. HERO SECTION (COLD METAL)
+           ========================================= */
+        .hero { height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; }
+        .hero-bg { 
+            position: absolute; inset: 0; z-index: 0;
+            background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover; background-position: center;
+            filter: grayscale(100%) contrast(1.2); opacity: 0.5;
+        }
+        .hero-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, var(--bg-base) 0%, transparent 100%); }
+
+        .hero-content { position: relative; z-index: 2; text-align: center; width: 100%; padding: 0 5%; }
+        
+        .hero-title { 
+            font-family: var(--font-head); font-size: clamp(4rem, 12vw, 10rem); 
+            line-height: 0.85; margin-bottom: 1rem; color: #FFF; text-transform: uppercase;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.9);
+        }
+        
+        .hero-subtitle { 
+            font-family: var(--font-tech); font-size: clamp(0.9rem, 2vw, 1.2rem); 
+            color: var(--text-muted); font-weight: 700; letter-spacing: 6px; 
+            text-transform: uppercase; margin-bottom: 3rem; 
+        }
+        
+        .hero-actions { display: flex; gap: 1.5rem; justify-content: center; }
+
+        /* =========================================
+           2. IGNITION (A FORJA LIGA)
+           ========================================= */
+        .ignition-section { padding: 12rem 0; text-align: center; position: relative; }
+        .ignition-glow {
+            position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0;
+            background: radial-gradient(circle at center, rgba(255, 69, 0, 0.15) 0%, transparent 70%);
+        }
+        .ignition-text { 
+            font-family: var(--font-head); font-size: clamp(2.5rem, 6vw, 5rem); 
+            line-height: 1.1; max-width: 1200px; margin: 0 auto; color: var(--border-heavy);
+            text-transform: uppercase;
+        }
+        .ignition-text span { color: var(--text-main); }
+        .ignition-text strong { color: var(--forge-orange); text-shadow: 0 0 20px rgba(255, 69, 0, 0.5); }
+
+        /* =========================================
+           3. IMPACT (PILARES METÁLICOS)
+           ========================================= */
+        .impact-section { padding: 5rem 0 10rem 0; }
+        .impact-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+        
+        .impact-plate {
+            background: var(--bg-metal); border: 1px solid var(--border-heavy);
+            height: 400px; display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden; transition: 0.4s;
+            /* Inicia fora do ecrã para animação GSAP */
+            transform: translateY(-100px); opacity: 0;
+        }
+        .impact-plate::before {
+            content: ''; position: absolute; inset: 0; border: 2px solid transparent; transition: 0.4s;
+        }
+        .impact-plate:hover { background: var(--bg-metal-light); transform: scale(1.02); z-index: 10; }
+        .impact-plate:hover::before { border-color: var(--forge-red); box-shadow: inset 0 0 30px rgba(229, 26, 0, 0.2); }
+        
+        .plate-text {
+            writing-mode: vertical-rl; transform: rotate(180deg);
+            font-family: var(--font-head); font-size: 3rem; color: var(--text-muted);
+            text-transform: uppercase; transition: 0.4s; pointer-events: none;
+        }
+        .impact-plate:hover .plate-text { color: var(--forge-red); text-shadow: 0 0 15px rgba(229, 26, 0, 0.5); letter-spacing: 5px; }
+
+        /* =========================================
+           4. THE FORGE ROOM (BLUEPRINT/MAPA)
+           ========================================= */
+        .forge-room { padding: 10rem 0; border-top: 1px solid var(--border-heavy); background: var(--bg-metal); }
+        .section-title { font-family: var(--font-head); font-size: 4rem; text-transform: uppercase; line-height: 1; margin-bottom: 3rem; }
+
+        .blueprint-container { display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; border: 1px solid var(--border-heavy); padding: 2px; background: var(--bg-base); }
+        
+        .blueprint-list { display: flex; flex-direction: column; background: var(--bg-metal); }
+        .zone-btn {
+            background: transparent; border: none; border-bottom: 1px solid var(--border-heavy);
+            padding: 2rem; text-align: left; color: var(--text-muted); font-family: var(--font-tech);
+            font-size: 1rem; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.3s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .zone-btn:hover { background: rgba(255,255,255,0.02); color: var(--text-main); }
+        .zone-btn.active { background: rgba(229, 26, 0, 0.1); color: var(--forge-red); border-left: 4px solid var(--forge-red); }
+        
+        .blueprint-display { position: relative; background: var(--bg-metal-light); overflow: hidden; min-height: 500px; display: flex; align-items: center; justify-content: center; }
+        .blueprint-display::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(var(--border-heavy) 1px, transparent 1px), linear-gradient(90deg, var(--border-heavy) 1px, transparent 1px);
+            background-size: 40px 40px; opacity: 0.3;
+        }
+        
+        .zone-info { position: absolute; padding: 3rem; opacity: 0; transform: translateY(20px); transition: 0.5s; pointer-events: none; }
+        .zone-info.active { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .zone-info h3 { font-family: var(--font-head); font-size: 3.5rem; color: #FFF; text-transform: uppercase; margin-bottom: 1rem; line-height: 1; }
+        .zone-info p { font-size: 1.1rem; color: var(--text-muted); max-width: 400px; margin-bottom: 2rem; }
+        .zone-img { width: 100%; height: 250px; background-size: cover; background-position: center; filter: grayscale(100%) contrast(1.2); border: 1px solid var(--forge-red); }
+
+        /* =========================================
+           5. CHOOSE YOUR PATH (DIAGNÓSTICO)
+           ========================================= */
+        .path-section { padding: 10rem 0; background: var(--bg-base); }
+        .path-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+        
+        .path-options { display: flex; flex-direction: column; gap: 1rem; }
+        .path-btn {
+            background: var(--bg-metal); border: 1px solid var(--border-heavy); color: var(--text-main);
+            padding: 1.5rem 2rem; font-family: var(--font-tech); font-size: 1.2rem; font-weight: 800;
+            text-transform: uppercase; text-align: left; cursor: pointer; transition: 0.3s;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .path-btn:hover { border-color: var(--text-main); transform: translateX(10px); }
+        .path-btn.active { border-color: var(--forge-red); background: var(--bg-metal-light); color: var(--forge-red); }
+
+        .path-result { background: var(--bg-metal); border: 1px solid var(--border-heavy); padding: 4rem; min-height: 400px; position: relative; }
+        .path-result::before { content: 'SYSTEM_DIAGNOSTIC'; position: absolute; top: 1rem; left: 1rem; font-family: var(--font-tech); font-size: 0.6rem; color: var(--forge-red); }
+        .result-content { display: none; animation: mechanicalReveal 0.5s steps(5, end); }
+        .result-content.active { display: block; }
+        
+        .r-title { font-family: var(--font-head); font-size: 2.5rem; color: #FFF; text-transform: uppercase; margin-bottom: 1rem; }
+        .r-focus { font-family: var(--font-tech); color: var(--forge-red); font-size: 0.9rem; margin-bottom: 2rem; display: block; }
+        .r-desc { color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem; }
+        
+        @keyframes mechanicalReveal { 0% { opacity: 0; clip-path: inset(0 100% 0 0); } 100% { opacity: 1; clip-path: inset(0 0 0 0); } }
+
+        /* =========================================
+           6. PLANS (FORGED PLATES)
+           ========================================= */
+        .pricing-section { padding: 10rem 0; background: var(--bg-metal); border-top: 2px solid var(--border-heavy); border-bottom: 2px solid var(--border-heavy); }
+        .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        
+        .price-plate { 
+            background: linear-gradient(145deg, var(--bg-metal-light) 0%, var(--bg-base) 100%);
+            border: 1px solid var(--border-heavy); padding: 3rem 2rem; display: flex; flex-direction: column;
+            position: relative; transition: 0.4s;
+        }
+        /* Rivets simulados */
+        .price-plate::before, .price-plate::after { content: ''; position: absolute; width: 6px; height: 6px; background: #000; border: 1px solid var(--border-heavy); border-radius: 50%; }
+        .price-plate::before { top: 10px; left: 10px; box-shadow: calc(100% - 26px) 0 0 #000; }
+        .price-plate::after { bottom: 10px; left: 10px; box-shadow: calc(100% - 26px) 0 0 #000; }
+
+        .price-plate.elite { border-color: var(--forge-red); box-shadow: 0 20px 50px rgba(229, 26, 0, 0.1); transform: scale(1.05); z-index: 10; }
+        
+        .p-name { font-family: var(--font-tech); font-size: 1rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; }
+        .p-tagline { font-family: var(--font-head); font-size: 2rem; color: #FFF; text-transform: uppercase; line-height: 1; margin-bottom: 2rem; }
+        .elite .p-tagline { color: var(--forge-red); }
+
+        .p-features { list-style: none; margin-bottom: 3rem; flex: 1; border-top: 1px solid var(--border-heavy); padding-top: 2rem; }
+        .p-features li { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; color: var(--text-main); margin-bottom: 1rem; text-transform: uppercase; }
+        .p-features li i { color: var(--forge-red); }
+        .p-features li.disabled { color: var(--text-muted); text-decoration: line-through; }
+
+        .btn-price { width: 100%; text-align: center; }
+
+        /* =========================================
+           7. RESULTS & 8. TESTIMONIALS
+           ========================================= */
+        .results-section { padding: 10rem 0; background: var(--bg-base); }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; margin-bottom: 8rem; }
+        .stat-block { border-left: 4px solid var(--forge-red); padding-left: 1.5rem; }
+        .stat-val { font-family: var(--font-head); font-size: 4rem; color: #FFF; line-height: 1; margin-bottom: 0.5rem; }
+        .stat-label { font-family: var(--font-tech); font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; font-weight: 800; }
+
+        .quote-block { text-align: center; max-width: 1000px; margin: 0 auto 6rem auto; }
+        .quote-text { font-family: var(--font-head); font-size: 3.5rem; text-transform: uppercase; color: var(--border-heavy); transition: color 0.5s; line-height: 1.1; }
+
+        .testim-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        .t-card { background: var(--bg-metal); border: 1px solid var(--border-heavy); padding: 2.5rem; }
+        .t-text { font-size: 1.1rem; font-style: italic; margin-bottom: 2rem; color: #CCC; font-weight: 600; }
+        .t-author { font-family: var(--font-tech); font-size: 0.8rem; color: var(--forge-red); text-transform: uppercase; font-weight: 800; }
+
+        /* =========================================
+           9. FINAL CTA (THE FORGE DOOR)
+           ========================================= */
+        .cta-section { padding: 15rem 0; text-align: center; background: #000; position: relative; border-top: 1px solid var(--border-heavy); overflow: hidden; }
+        
+        .forge-door-left, .forge-door-right {
+            position: absolute; top: 0; width: 50%; height: 100%; background: var(--bg-metal-light);
+            border-right: 2px solid var(--forge-red); z-index: 10; transition: transform 1.5s cubic-bezier(0.8, 0, 0.2, 1);
+        }
+        .forge-door-left { left: 0; border-right: 2px solid var(--forge-red); }
+        .forge-door-right { right: 0; border-left: 2px solid var(--forge-red); }
+        
+        /* O GSAP vai abrir estas portas */
+        .cta-section.is-open .forge-door-left { transform: translateX(-100%); }
+        .cta-section.is-open .forge-door-right { transform: translateX(100%); }
+
+        .cta-content { position: relative; z-index: 5; opacity: 0; transform: scale(0.9); transition: 1s 0.5s; }
+        .cta-section.is-open .cta-content { opacity: 1; transform: scale(1); }
+
+        .cta-title { font-family: var(--font-head); font-size: clamp(3rem, 8vw, 7rem); line-height: 0.9; text-transform: uppercase; margin-bottom: 2rem; text-shadow: 0 0 50px rgba(229, 26, 0, 0.5); }
+        .cta-sub { font-family: var(--font-tech); font-size: 1.2rem; color: var(--forge-orange); font-weight: 800; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 4rem; }
+
+        /* =========================================
+           FOOTER
+           ========================================= */
+        footer { padding: 3rem 5%; background: var(--bg-base); border-top: 1px solid var(--border-heavy); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-tech); font-size: 0.7rem; color: var(--text-muted); }
+
+        /* =========================================
+           RESPONSIVIDADE
+           ========================================= */
+        @media (max-width: 992px) {
+            .hero-actions { flex-direction: column; }
+            .impact-grid { grid-template-columns: 1fr; }
+            .impact-plate { height: 100px; transform: none; opacity: 1; }
+            .plate-text { writing-mode: horizontal-tb; transform: none; font-size: 2rem; }
+            .blueprint-container, .path-grid { grid-template-columns: 1fr; }
+            .pricing-grid, .testim-grid, .stats-grid { grid-template-columns: 1fr; }
+            .price-plate.elite { transform: none; }
+            .nav-links { display: none; }
+            .floating-cta { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BACKGROUNDS & CANVAS -->
+    <canvas id="forge-sparks"></canvas>
+    <div class="noise"></div>
+
+    <!-- FLOATING CTA -->
+    <a href="#planos" class="btn-forge chamfered floating-cta" style="padding: 0.8rem 2rem; font-size: 1rem;">
+        <span>Entrar na Iron Forge</span>
+    </a>
+
+    <!-- HEADER -->
+    <header id="header">
+        <a href="#" class="logo">
+            <div class="logo-icon"><i data-lucide="hammer" style="color:#000; width:18px;"></i></div>
+            IRON<span>FORGE</span>
+        </a>
+        <nav class="nav-links">
+            <a href="#estrutura">Estrutura</a>
+            <a href="#objetivos">Objetivos</a>
+            <a href="#planos">Planos</a>
+        </nav>
+        <a href="https://wa.me/SEUNUMERO" class="nav-links" style="color:var(--text-main); font-family:var(--font-tech); font-size:0.8rem; font-weight:700; text-decoration:none;">
+            [ CONTACTO ]
+        </a>
+    </header>
+
+    <!-- 1. HERO SECTION -->
+    <section class="hero">
+        <div class="hero-bg gs-parallax"></div>
+        <div class="hero-content">
+            <span class="tech-label gs-reveal">The body is forged, not built.</span>
+            <h1 class="hero-title gs-reveal">FORGE YOUR BODY.</h1>
+            <p class="hero-subtitle gs-reveal">Disciplina. Força. Resultado Real.</p>
+            <div class="hero-actions gs-reveal">
+                <a href="#planos" class="btn-forge chamfered"><span>Começar Agora</span></a>
+                <a href="#estrutura" class="btn-forge btn-secondary chamfered"><span>Ver Estrutura</span></a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. IGNITION -->
+    <section class="ignition-section">
+        <div class="ignition-glow" id="ignition-glow"></div>
+        <div class="container">
+            <h2 class="ignition-text gs-text-glow">Não é treino. É <span>transformação</span> sob <strong>pressão.</strong> Aqui, desculpa não treina.</h2>
+        </div>
+    </section>
+
+    <!-- 3. IMPACT (PILARES) -->
+    <section class="impact-section">
+        <div class="container impact-grid" id="impact-trigger">
+            <div class="impact-plate chamfered">
+                <span class="plate-text">Força</span>
+            </div>
+            <div class="impact-plate chamfered">
+                <span class="plate-text">Resistência</span>
+            </div>
+            <div class="impact-plate chamfered">
+                <span class="plate-text">Hipertrofia</span>
+            </div>
+            <div class="impact-plate chamfered">
+                <span class="plate-text">Condicionamento</span>
+            </div>
+            <div class="impact-plate chamfered">
+                <span class="plate-text">Disciplina</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. THE FORGE ROOM -->
+    <section class="forge-room" id="estrutura">
+        <div class="container">
+            <span class="tech-label">// FACILITY BLUEPRINT</span>
+            <h2 class="section-title">A Estrutura</h2>
+            
+            <div class="blueprint-container chamfered">
+                <div class="blueprint-list">
+                    <button class="zone-btn active" onclick="showZone('musculacao')">
+                        Zona de Musculação <i data-lucide="chevron-right"></i>
+                    </button>
+                    <button class="zone-btn" onclick="showZone('arena')">
+                        Arena Funcional <i data-lucide="chevron-right"></i>
+                    </button>
+                    <button class="zone-btn" onclick="showZone('peso')">
+                        Área de Peso Livre <i data-lucide="chevron-right"></i>
+                    </button>
+                    <button class="zone-btn" onclick="showZone('cardio')">
+                        Cardio Performance <i data-lucide="chevron-right"></i>
+                    </button>
+                    <button class="zone-btn" onclick="showZone('vestiario')">
+                        Vestiários Premium <i data-lucide="chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="blueprint-display">
+                    <!-- ZONAS -->
+                    <div id="zone-musculacao" class="zone-info active">
+                        <h3>Zona de Musculação</h3>
+                        <p>Biomecânica isolada. Máquinas de última geração projetadas para recrutar cada fibra muscular com precisão cirúrgica.</p>
+                        <div class="zone-img" style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=2070&auto=format&fit=crop');"></div>
+                    </div>
+                    <div id="zone-arena" class="zone-info">
+                        <h3>Arena Funcional</h3>
+                        <p>Sleds, argolas, caixas, kettlebells. Espaço bruto preparado para elevar o seu condicionamento a níveis de elite.</p>
+                        <div class="zone-img" style="background-image: url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2070&auto=format&fit=crop');"></div>
+                    </div>
+                    <div id="zone-peso" class="zone-info">
+                        <h3>Área de Peso Livre</h3>
+                        <p>Halteres pesados, power racks e plataformas de levantamento olímpico. O núcleo da forja onde a força bruta é construída.</p>
+                        <div class="zone-img" style="background-image: url('https://images.unsplash.com/photo-1540497077202-7c8a3999166f?q=80&w=2070&auto=format&fit=crop');"></div>
+                    </div>
+                    <div id="zone-cardio" class="zone-info">
+                        <h3>Cardio Performance</h3>
+                        <p>Remo, air bikes, escadas e passadeiras. Sistema cardiovascular testado sob alta intensidade.</p>
+                        <div class="zone-img" style="background-image: url('https://images.unsplash.com/photo-1534258936925-c58bed479fcb?q=80&w=2062&auto=format&fit=crop');"></div>
+                    </div>
+                    <div id="zone-vestiario" class="zone-info">
+                        <h3>Vestiários Premium</h3>
+                        <p>Recuperação merecida. Chuveiros de alta pressão, cacifos seguros e ambiente climatizado de alto padrão.</p>
+                        <div class="zone-img" style="background-image: url('https://images.unsplash.com/photo-1584464436224-8149e1eec6bc?q=80&w=2070&auto=format&fit=crop');"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. CHOOSE YOUR PATH (DIAGNÓSTICO) -->
+    <section class="path-section" id="objetivos">
+        <div class="container">
+            <div class="path-grid">
+                <div>
+                    <span class="tech-label">// TARGET SELECTION</span>
+                    <h2 class="section-title">Escolha o<br>seu alvo.</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 2rem;">Não aceitamos treinos sem propósito. Defina o objetivo, nós entregamos a rota.</p>
+                    
+                    <div class="path-options">
+                        <button class="path-btn chamfered active" onclick="setPath('massa', this)">Ganhar Massa <i data-lucide="crosshair"></i></button>
+                        <button class="path-btn chamfered" onclick="setPath('gordura', this)">Perder Gordura <i data-lucide="crosshair"></i></button>
+                        <button class="path-btn chamfered" onclick="setPath('forca', this)">Aumentar Força <i data-lucide="crosshair"></i></button>
+                        <button class="path-btn chamfered" onclick="setPath('condicionamento', this)">Melhorar Condicionamento <i data-lucide="crosshair"></i></button>
+                    </div>
+                </div>
+
+                <div class="path-result chamfered-rev">
+                    <!-- Resultados Dinâmicos -->
+                    <div id="res-massa" class="result-content active">
+                        <h3 class="r-title">Plano: Construção de Armadura</h3>
+                        <span class="r-focus">Foco: Hipertrofia + Sobrecarga Progressiva</span>
+                        <p class="r-desc">Um programa impiedoso focado no volume de treino e rutura de fibras. Biomecânica avançada para isolamento muscular e dieta de superávit. O corpo será forçado a crescer.</p>
+                        <a href="#planos" class="btn-forge"><span>Aceitar Protocolo</span></a>
+                    </div>
+                    <div id="res-gordura" class="result-content">
+                        <h3 class="r-title">Plano: Fornalha Metabólica</h3>
+                        <span class="r-focus">Foco: Défice Calórico + Densidade de Treino</span>
+                        <p class="r-desc">Destruição de tecido adiposo mantendo a massa magra. Combinação brutal de treinos de força intensos com circuitos funcionais e cardio finalizador.</p>
+                        <a href="#planos" class="btn-forge"><span>Aceitar Protocolo</span></a>
+                    </div>
+                    <div id="res-forca" class="result-content">
+                        <h3 class="r-title">Plano: Força Máxima</h3>
+                        <span class="r-focus">Foco: Carga Alta + Repetições Baixas</span>
+                        <p class="r-desc">O núcleo do levantamento de peso. Foco nos básicos pesados: agachamento, supino, peso morto. Fortalecimento do sistema nervoso central para mover montanhas.</p>
+                        <a href="#planos" class="btn-forge"><span>Aceitar Protocolo</span></a>
+                    </div>
+                    <div id="res-condicionamento" class="result-content">
+                        <h3 class="r-title">Plano: Motor Inquebrável</h3>
+                        <span class="r-focus">Foco: Resistência + VO2 Max</span>
+                        <p class="r-desc">Circuitos na Arena Funcional que testam o limite do coração e pulmões. Sleds, remo, pliometria. Treine para não falhar quando o corpo pedir arrego.</p>
+                        <a href="#planos" class="btn-forge"><span>Aceitar Protocolo</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. PLANS (FORGED PLATES) -->
+    <section class="pricing-section" id="planos">
+        <div class="container">
+            <span class="tech-label" style="text-align: center;">// ADMISSION</span>
+            <h2 class="section-title" style="text-align: center; margin-bottom: 5rem;">O Preço da Evolução</h2>
+
+            <div class="pricing-grid">
+                <!-- MENSAL -->
+                <div class="price-plate chamfered gs-fade">
+                    <span class="p-name">Mensal</span>
+                    <div class="p-tagline">Entrada<br>na Forja</div>
+                    <ul class="p-features">
+                        <li><i data-lucide="check"></i> Acesso Total (Musculação)</li>
+                        <li><i data-lucide="check"></i> Acesso Arena Funcional</li>
+                        <li class="disabled"><i data-lucide="x"></i> Avaliação Física</li>
+                        <li class="disabled"><i data-lucide="x"></i> Programa Personalizado</li>
+                    </ul>
+                    <a href="#" class="btn-forge btn-secondary btn-price"><span>Entrar para a forja</span></a>
+                </div>
+
+                <!-- ANUAL (ELITE) -->
+                <div class="price-plate elite chamfered gs-fade">
+                    <span class="p-name" style="color: var(--forge-red);">Anual</span>
+                    <div class="p-tagline">Transformação<br>Completa</div>
+                    <ul class="p-features">
+                        <li><i data-lucide="check"></i> Acesso Total & Ilimitado</li>
+                        <li><i data-lucide="check"></i> Avaliação Física Trimestral</li>
+                        <li><i data-lucide="check"></i> Programa Personalizado</li>
+                        <li><i data-lucide="check"></i> Acesso a Workshops</li>
+                    </ul>
+                    <a href="#" class="btn-forge btn-price"><span>Entrar para a forja</span></a>
+                </div>
+
+                <!-- TRIMESTRAL -->
+                <div class="price-plate chamfered gs-fade">
+                    <span class="p-name">Trimestral</span>
+                    <div class="p-tagline">Construção<br>de Força</div>
+                    <ul class="p-features">
+                        <li><i data-lucide="check"></i> Acesso Total (Musculação)</li>
+                        <li><i data-lucide="check"></i> Acesso Arena Funcional</li>
+                        <li><i data-lucide="check"></i> 1x Avaliação Física</li>
+                        <li class="disabled"><i data-lucide="x"></i> Programa Personalizado</li>
+                    </ul>
+                    <a href="#" class="btn-forge btn-secondary btn-price"><span>Entrar para a forja</span></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. RESULTS & 8. TESTIMONIALS -->
+    <section class="results-section">
+        <div class="container">
+            
+            <div class="stats-grid">
+                <div class="stat-block gs-fade">
+                    <div class="stat-val">+ Força</div>
+                    <div class="stat-label">Capacidade Física Extrema</div>
+                </div>
+                <div class="stat-block gs-fade">
+                    <div class="stat-val">+ Discip.</div>
+                    <div class="stat-label">Mentalidade Blindada</div>
+                </div>
+                <div class="stat-block gs-fade">
+                    <div class="stat-val">+ Const.</div>
+                    <div class="stat-label">Execução Diária Implacável</div>
+                </div>
+                <div class="stat-block gs-fade" style="border-color: var(--text-muted);">
+                    <div class="stat-val" style="color:var(--text-muted);">- Desculpas</div>
+                    <div class="stat-label">Zero Tolerância ao Fracasso</div>
+                </div>
+            </div>
+
+            <div class="quote-block">
+                <h2 class="quote-text gs-text-glow" style="color: #FFF;">Resultado não vem de motivação.<br><span style="color: var(--forge-red);">Vem de repetição.</span></h2>
+            </div>
+
+            <div class="testim-grid">
+                <div class="t-card chamfered gs-fade">
+                    <p class="t-text">"Entrei fraco. Saí impossível de ignorar. Não é apenas levantar peso, é sobre destruir quem tu eras ontem."</p>
+                    <span class="t-author">_ Marcus V.</span>
+                </div>
+                <div class="t-card chamfered gs-fade">
+                    <p class="t-text">"Foi o primeiro lugar que me fez levar o treino a sério. A energia aqui dentro não permite que desistas."</p>
+                    <span class="t-author">_ Sarah J.</span>
+                </div>
+                <div class="t-card chamfered gs-fade">
+                    <p class="t-text">"A estrutura é absurda. Equipamentos pesados, biomecânica perfeita. O ambiente obriga-te a evoluir."</p>
+                    <span class="t-author">_ Tiago F.</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- 9. FINAL CTA (THE FORGE DOOR) -->
+    <section class="cta-section" id="final-cta">
+        <div class="forge-door-left"></div>
+        <div class="forge-door-right"></div>
+        
+        <div class="container cta-content">
+            <h2 class="cta-title">Você vai continuar igual...<br>ou vai <span style="color:var(--text-main);">evoluir?</span></h2>
+            <div class="cta-sub">A forja está aberta. O próximo passo é seu.</div>
+            <a href="#planos" class="btn-forge chamfered" style="font-size: 2rem; padding: 1.5rem 4rem;"><span>Entrar para o time</span></a>
+        </div>
+    </section>
+
+    <footer>
+        <div>&copy; 2026 IRON FORGE GYM. A força é construída no silêncio.</div>
+        <div>ENGINEERED FOR POWER</div>
+    </footer>
+
+    <!-- Scripts GSAP e Lucide -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <script>
+        // Iniciar ícones
+        lucide.createIcons();
+
+        // ==========================================
+        // 1. CANVAS: SISTEMA DE FAÍSCAS (SPARKS)
+        // ==========================================
+        const canvas = document.getElementById('forge-sparks');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        let particles = [];
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        class Spark {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * height; // Inicia espalhado
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = height + Math.random() * 100;
+                this.size = Math.random() * 2 + 1;
+                this.speedY = -(Math.random() * 2 + 0.5);
+                this.speedX = (Math.random() - 0.5) * 1;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                this.color = Math.random() > 0.5 ? '#E51A00' : '#FF4500';
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += this.speedX;
+                this.opacity -= 0.003;
+                if (this.opacity <= 0 || this.y < 0) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+            }
+        }
+
+        // Criar menos partículas para não pesar (optimized)
+        for (let i = 0; i < 50; i++) particles.push(new Spark());
+
+        function animateSparks() {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animateSparks);
+        }
+        animateSparks();
+
+        // ==========================================
+        // 2. LÓGICA DE INTERFACE (MAPA E DIAGNÓSTICO)
+        // ==========================================
+        window.showZone = function(zoneId) {
+            document.querySelectorAll('.zone-btn').forEach(b => b.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            document.querySelectorAll('.zone-info').forEach(info => {
+                info.classList.remove('active');
+            });
+            document.getElementById('zone-' + zoneId).classList.add('active');
+        };
+
+        window.setPath = function(pathId, btn) {
+            document.querySelectorAll('.path-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const target = document.getElementById('res-' + pathId);
+            
+            // GSAP quick animation for mechanical swap
+            document.querySelectorAll('.result-content').forEach(res => {
+                res.classList.remove('active');
+            });
+            target.classList.add('active');
+        };
+
+        // ==========================================
+        // 3. ANIMAÇÕES GSAP (SCROLL DRIVEN)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // Header Scrolled
+            const header = document.getElementById('header');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) header.classList.add('scrolled');
+                else header.classList.remove('scrolled');
+            });
+
+            // Hero Parallax
+            gsap.to('.gs-parallax', {
+                yPercent: 30, ease: "none",
+                scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom top", scrub: true }
+            });
+
+            // Hero Reveals
+            gsap.utils.toArray('.gs-reveal').forEach(el => {
+                gsap.fromTo(el, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: 'power3.out', stagger: 0.2 });
+            });
+
+            // Ignition Glow (Fornalha ligando)
+            gsap.to('#ignition-glow', {
+                opacity: 1, ease: "none",
+                scrollTrigger: { trigger: ".ignition-section", start: "top 80%", end: "center center", scrub: true }
+            });
+            gsap.to('.gs-text-glow', {
+                color: "#FFFFFF", textShadow: "0 0 30px rgba(229,26,0,0.8)", ease: "none",
+                scrollTrigger: { trigger: ".ignition-section", start: "top 60%", end: "center center", scrub: true }
+            });
+
+            // Impact Plates (Batida do martelo)
+            gsap.to('.impact-plate', {
+                y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "power4.in",
+                scrollTrigger: { trigger: "#impact-trigger", start: "top 80%" }
+            });
+
+            // Fade Standards
+            gsap.utils.toArray('.gs-fade').forEach(el => {
+                gsap.fromTo(el, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', scrollTrigger: { trigger: el, start: "top 90%" }});
+            });
+
+            // The Forge Door (Final CTA)
+            ScrollTrigger.create({
+                trigger: "#final-cta",
+                start: "top 60%",
+                onEnter: () => document.getElementById('final-cta').classList.add('is-open')
+            });
+        });
+    </script>
+</body>
+</html>
